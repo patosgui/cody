@@ -12,8 +12,7 @@ import { logDebug } from '../../src/logger'
  */
 export const run = async (messages: Message[], cb: CompletionCallbacks,) => {
     const model = new ChatMistralAI({
-        //apiKey: process.env.MISTRAL_API_KEY,
-        apiKey: "J8GSYWRHoApL1R30TOcrvffjsV0mmZG9",
+        apiKey: process.env.MISTRAL_API_KEY,
         modelName: "mistral-small",
     });
     // Check later: https://medium.com/@2018.itsuki/implement-langchain-conversationsummarybuffermemory-in-next-js-using-typescript-b956a15e4103
