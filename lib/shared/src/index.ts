@@ -128,7 +128,7 @@ export type {
 export { logDebug, logError, setLogger } from './logger'
 export {
     createOllamaClient,
-    ollamaChatClient,
+    mistralChatClient,
     type OllamaGenerateParams,
     OLLAMA_DEFAULT_URL,
 } from './ollama'

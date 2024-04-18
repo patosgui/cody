@@ -204,8 +204,8 @@ importers:
         specifier: 0.1.5
         version: 0.1.5
       '@langchain/mistralai':
-        specifier: ^0.0.18
-        version: 0.0.18
+        specifier: ^0.0.19
+        version: 0.0.19
       '@microsoft/fetch-event-source':
         specifier: ^2.0.1
         version: 2.0.1
@@ -3495,8 +3495,8 @@ packages:
       zod-to-json-schema: 3.22.5(zod@3.22.4)
     dev: false
 
-  /@langchain/mistralai@0.0.18:
-    resolution: {integrity: sha512-9xjQQEF90A5tYPQCvNjj9vaJMJ+oP7/cvr0UTx0p/uKvbyS+3WyMFbVRmJgHUw5ERm2j8HYfES8ZyUiJTfFJUw==}
+  /@langchain/mistralai@0.0.19:
+    resolution: {integrity: sha512-Uin/jve1NCZLAFa9dpOKzE3Y2+uSnMJQX5ria9vO3lnTGRlvBwcMhyGDoTYdI+gnQgHH4ceBoIBzJDlVG+WVWw==}
     engines: {node: '>=18'}
     dependencies:
       '@langchain/core': 0.1.57

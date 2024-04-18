@@ -3,8 +3,7 @@ import * as vscode from 'vscode'
 import {
     type AuthStatus,
     type ChatClient,
-    ConfigFeaturesSingleton,
-    type ModelProvider,
+    //type ModelProvider,
 } from '@sourcegraph/cody-shared'
 
 import type { GhostHintDecorator } from '../commands/GhostHintDecorator'
@@ -14,7 +13,7 @@ import { FixupController } from '../non-stop/FixupController'
 import type { FixupTask } from '../non-stop/FixupTask'
 
 import type { ExtensionClient } from '../extension-client'
-import { editModel } from '../models'
+//import { editModel } from '../models'
 import { ACTIVE_TASK_STATES } from '../non-stop/codelenses/constants'
 import type { AuthProvider } from '../services/AuthProvider'
 import { telemetryService } from '../services/telemetry'
@@ -23,7 +22,7 @@ import { DEFAULT_EDIT_MODE } from './constants'
 import type { ExecuteEditArguments } from './execute'
 import { EditProvider } from './provider'
 import { getEditIntent } from './utils/edit-intent'
-import { getEditModelsForUser } from './utils/edit-models'
+//import { getEditModelsForUser } from './utils/edit-models'
 import { getEditLineSelection, getEditSmartSelection } from './utils/edit-selection'
 
 export interface EditManagerOptions {
@@ -41,7 +40,7 @@ export class EditManager implements vscode.Disposable {
     private readonly controller: FixupController
     private disposables: vscode.Disposable[] = []
     private editProviders = new WeakMap<FixupTask, EditProvider>()
-    private models: ModelProvider[] = []
+    //private models: ModelProvider[] = []
 
     constructor(public options: EditManagerOptions) {
         this.controller = new FixupController(options.authProvider, options.extensionClient)
@@ -54,7 +53,7 @@ export class EditManager implements vscode.Disposable {
     }
 
     public syncAuthStatus(authStatus: AuthStatus): void {
-        this.models = getEditModelsForUser(authStatus)
+        //this.models = getEditModelsForUser(authStatus)
     }
 
     public async executeEdit(args: ExecuteEditArguments = {}): Promise<FixupTask | undefined> {
@@ -68,14 +67,6 @@ export class EditManager implements vscode.Disposable {
             source = 'editor',
             telemetryMetadata,
         } = args
-        const configFeatures = await ConfigFeaturesSingleton.getInstance().getConfigFeatures()
-        if (!configFeatures.commands) {
-            void vscode.window.showErrorMessage(
-                'This feature has been disabled by your Sourcegraph site admin.'
-            )
-            return
-        }
-
         const editor = getEditor()
         if (editor.ignored) {
             void vscode.window.showInformationMessage('Cannot edit Cody ignored file.')
@@ -96,8 +87,8 @@ export class EditManager implements vscode.Disposable {
         // Set default edit configuration, if not provided
         // It is possible that these values may be overriden later, e.g. if the user changes them in the edit input.
         const range = getEditLineSelection(document, proposedRange)
-        const mode = configuration.mode || DEFAULT_EDIT_MODE
-        const model = configuration.model || editModel.get(this.options.authProvider, this.models)
+        const mode =  DEFAULT_EDIT_MODE //configuration.mode || DEFAULT_EDIT_MODE
+        const model = "open-mixtral-8x22b" // configuration.model || editModel.get(this.options.authProvider, this.models)
         const intent = getEditIntent(document, range, configuration.intent)
 
         let expandedRange: vscode.Range | undefined

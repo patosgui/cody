@@ -9,7 +9,6 @@ import {
     //ConfigFeaturesSingleton,
     type ContextItem,
     type ContextItemWithContent,
-    FeatureFlag,
     type FeatureFlagProvider,
     type Guardrails,
     MAX_BYTES_PER_FILE,
@@ -19,7 +18,6 @@ import {
     type SerializedChatInteraction,
     type SerializedChatTranscript,
     Typewriter,
-    featureFlagProvider,
     hydrateAfterPostMessage,
     isDefined,
     isError,
@@ -396,9 +394,10 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         source?: ChatEventSource
     ): Promise<void> {
         return tracer.startActiveSpan('chat.submit', async (span): Promise<void> => {
-            const useFusedContextPromise = featureFlagProvider.evaluateFeatureFlag(
-                FeatureFlag.CodyChatFusedContext
-            )
+            //const useFusedContextPromise = featureFlagProvider.evaluateFeatureFlag(
+            //    FeatureFlag.CodyChatFusedContext
+            //)
+            const useFusedContextPromise = false;
 
             const authStatus = this.authProvider.getAuthStatus()
             const sharedProperties = {

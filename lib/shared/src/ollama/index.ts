@@ -3,7 +3,7 @@ import type { OllamaGenerateParameters } from '../configuration'
 export const OLLAMA_DEFAULT_URL = 'http://localhost:11434'
 
 export { createOllamaClient } from './completions-client'
-export { ollamaChatClient } from './chat-client'
+export { mistralChatClient} from './chat-client'
 
 /**
  * @see https://sourcegraph.com/github.com/jmorganca/ollama/-/blob/api/types.go?L35

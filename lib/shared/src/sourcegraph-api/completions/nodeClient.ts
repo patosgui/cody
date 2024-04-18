@@ -1,5 +1,5 @@
 
-import { ollamaChatClient } from '../../ollama/chat-client'
+import { mistralChatClient } from '../../ollama/chat-client'
 import { SourcegraphCompletionsClient } from './client'
 import type { CompletionCallbacks, CompletionParameters } from './types'
 
@@ -11,6 +11,6 @@ export class SourcegraphNodeCompletionsClient extends SourcegraphCompletionsClie
         cb: CompletionCallbacks,
         _signal?: AbortSignal
     ): void {
-    ollamaChatClient(params, cb)
+    mistralChatClient(params, cb)
     }
 }
