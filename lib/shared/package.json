@@ -18,6 +18,9 @@
     "prepublishOnly": "tsc --build --clean && pnpm run build"
   },
   "dependencies": {
+    "langchain": "0.0.207",
+    "@langchain/core": "0.1.5",
+    "@langchain/mistralai": "^0.0.18",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@opentelemetry/api": "^1.7.0",
     "@sourcegraph/telemetry": "^0.16.0",

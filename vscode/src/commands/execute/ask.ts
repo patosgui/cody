@@ -1,4 +1,4 @@
-import { type ChatEventSource, ConfigFeaturesSingleton } from '@sourcegraph/cody-shared'
+import { type ChatEventSource} from '@sourcegraph/cody-shared'
 import * as vscode from 'vscode'
 import { isDefaultChatCommand } from '.'
 import type { ChatSession } from '../../chat/chat-view/SimpleChatPanelProvider'
@@ -14,15 +14,16 @@ export interface ExecuteChatArguments extends WebviewSubmitMessage {
  * This is also called by all the default chat commands (e.g. /explain, /smell).
  */
 export const executeChat = async (args: ExecuteChatArguments): Promise<ChatSession | undefined> => {
-    const { chat, commands } = await ConfigFeaturesSingleton.getInstance().getConfigFeatures()
-    const isCommand = isDefaultChatCommand(args.source || '')
-    if ((!isCommand && !chat) || (isCommand && !commands)) {
-        void vscode.window.showErrorMessage(
-            'This feature has been disabled by your Sourcegraph site admin.'
-        )
-        return undefined
-    }
+    //const { chat, commands } = await ConfigFeaturesSingleton.getInstance().getConfigFeatures()
+    //const isCommand = isDefaultChatCommand(args.source || '')
+    //if ((!isCommand && !chat) || (isCommand && !commands)) {
+    //    void vscode.window.showErrorMessage(
+    //        'This feature has been disabled by your Sourcegraph site admin.'
+    //    )
+    //    return undefined
+    //}
 
+    const isCommand = isDefaultChatCommand(args.source || '')
     if (isCommand && getEditor()?.ignored) {
         void vscode.window.showErrorMessage('Cannot execute a command in an ignored file.')
         return undefined

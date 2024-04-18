@@ -26,6 +26,84 @@ import {
 import { SpanStatusCode } from '@opentelemetry/api'
 import { fetch } from '@sourcegraph/cody-shared/src/fetch'
 
+export function createLocalClient(
+    config: CompletionsClientConfig,
+    logger?: CompletionLogger
+): CodeCompletionsClient {
+    async function* complete(
+        params: CodeCompletionsParams,
+        abortController: AbortController
+    ): CompletionResponseGenerator {
+        const url = new URL('/.api/completions/code', config.serverEndpoint).href
+        const log = logger?.startCompletion(params, url)
+        const { signal } = abortController
+
+
+        const headers = new Headers(config.customHeaders)
+        // Force HTTP connection reuse to reduce latency.
+        // c.f. https://github.com/microsoft/vscode/issues/173861
+        headers.set('Connection', 'keep-alive')
+        headers.set('Content-Type', 'application/json; charset=utf-8')
+
+        // We enable streaming only for Node environments right now because it's hard to make
+        // the polyfilled fetch API work the same as it does in the browser.
+        //
+        // TODO(philipp-spiess): Feature test if the response is a Node or a browser stream and
+        // implement SSE parsing for both.
+        const isNode = typeof process !== 'undefined'
+        const enableStreaming = !!isNode
+
+        // Disable gzip compression since the sg instance will start to batch
+        // responses afterwards.
+        if (enableStreaming) {
+            headers.set('Accept-Encoding', 'gzip;q=0')
+        }
+
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                ...params,
+                stream: enableStreaming,
+            }),
+            headers,
+            signal,
+        })
+
+
+        if (!response.ok) {
+            log?.onError('Failed to fetch completions', {
+                status: response.status,
+                statusText: response.statusText,
+                url,
+            })
+        }
+
+        //if (response.body === null) {}
+
+        // For backward compatibility, we have to check if the response is an SSE stream or a
+        // regular JSON payload. This ensures that the request also works against older backends
+        // const isStreamingResponse = response.headers.get('content-type') === 'text/event-stream'
+
+        // let completionResponse: CompletionResponse
+
+        let stopReason = ''
+        const completionResponse: CompletionResponse = {
+                completion: "Hello World!",
+                stopReason: stopReason || CompletionStopReason.RequestFinished,
+            }
+        return completionResponse
+
+    }
+
+
+    return {
+        complete,
+        logger,
+        onConfigurationChange : () => undefined,
+    }
+
+}
+
 /**
  * Access the code completion LLM APIs via a Sourcegraph server instance.
  */

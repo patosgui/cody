@@ -10,7 +10,7 @@ import {
     isError,
 } from '@sourcegraph/cody-shared'
 
-import { createClient as createCodeCompletionsClient } from './completions/client'
+import { createLocalClient as createCodeCompletionsClient } from './completions/client'
 import type { PlatformContext } from './extension.common'
 import type { ContextRankerConfig } from './local-context/context-ranking'
 import type { ContextRankingController } from './local-context/context-ranking'

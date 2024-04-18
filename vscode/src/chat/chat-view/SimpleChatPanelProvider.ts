@@ -6,7 +6,7 @@ import {
     type ChatClient,
     type ChatEventSource,
     type ChatMessage,
-    ConfigFeaturesSingleton,
+    //ConfigFeaturesSingleton,
     type ContextItem,
     type ContextItemWithContent,
     FeatureFlag,
@@ -60,7 +60,7 @@ import type { Repo } from '../../context/repo-fetcher'
 import type { RemoteRepoPicker } from '../../context/repo-picker'
 import type { ContextRankingController } from '../../local-context/context-ranking'
 import { chatModel } from '../../models'
-import { recordExposedExperimentsToSpan } from '../../services/open-telemetry/utils'
+//import { recordExposedExperimentsToSpan } from '../../services/open-telemetry/utils'
 import type { MessageErrorType } from '../MessageProvider'
 import { getChatContextItemsForMention } from '../context/chatContext'
 import type {
@@ -178,7 +178,8 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         this.remoteSearch = enterpriseContext?.createRemoteSearch() || null
         this.editor = editor
         this.treeView = treeView
-        this.chatModel = new SimpleChatModel(chatModel.get(authProvider, models))
+        // Fake and hardcoded model for testing
+        this.chatModel = new SimpleChatModel("anthropic/claude-3-sonnet-20240229")
         this.guardrails = guardrails
 
         if (TestSupport.instance) {
@@ -348,7 +349,6 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         const configForWebview: ConfigurationSubsetForWebview & LocalEnv = {
             uiKindIsWeb: vscode.env.uiKind === vscode.UIKind.Web,
             debugEnable: config.debugEnable,
-            serverEndpoint: config.serverEndpoint,
             experimentalGuardrails: config.experimentalGuardrails,
         }
         const workspaceFolderUris =
@@ -850,7 +850,7 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
             },
             close: content => {
                 measureFirstToken()
-                recordExposedExperimentsToSpan(span)
+                //recordExposedExperimentsToSpan(span)
                 span.end()
                 this.addBotMessage(requestID, content)
             },
@@ -996,10 +996,11 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
     public async newSession(): Promise<void> {
         // Set the remote search's selected repos to the workspace repo list
         // by default.
-        this.remoteSearch?.setRepos(
-            (await this.repoPicker?.getDefaultRepos()) || [],
-            RepoInclusion.Manual
-        )
+        // Disabled for now because we don't have a way to set the default repos
+        // this.remoteSearch?.setRepos(
+        //     (await this.repoPicker?.getDefaultRepos()) || [],
+        //     RepoInclusion.Manual
+        // )
     }
 
     // Attempts to restore the chat to the given sessionID, if it exists in
@@ -1164,14 +1165,14 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         // Used for keeping sidebar chat view closed when webview panel is enabled
         await vscode.commands.executeCommand('setContext', CodyChatPanelViewType, true)
 
-        const configFeatures = await ConfigFeaturesSingleton.getInstance().getConfigFeatures()
-        void this.postMessage({
-            type: 'setConfigFeatures',
-            configFeatures: {
-                chat: configFeatures.chat,
-                attribution: configFeatures.attribution,
-            },
-        })
+        //const configFeatures = await ConfigFeaturesSingleton.getInstance().getConfigFeatures()
+        //void this.postMessage({
+        //    type: 'setConfigFeatures',
+        //    configFeatures: {
+        //        chat: configFeatures.chat,
+        //        attribution: configFeatures.attribution,
+        //    },
+        //})
 
         return panel
     }

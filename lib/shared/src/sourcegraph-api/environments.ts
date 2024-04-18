@@ -1,7 +1,7 @@
 // `TESTING_DOTCOM_URL` is not set in webviews. If `isDotCom` helper it called from the webview it will use
 // the default ('https://sourcegraph.com') value.
 export const DOTCOM_URL = new URL(
-    (typeof process === 'undefined' ? null : process.env.TESTING_DOTCOM_URL) ?? 'https://sourcegraph.com'
+    (typeof process === 'undefined' ? null : process.env.TESTING_DOTCOM_URL) ?? 'http://localhost:49300/'
 )
 export const LOCAL_APP_URL = new URL('http://localhost:3080')
 

@@ -4,7 +4,7 @@ import {
     type AuthStatus,
     type ChatEventSource,
     ConfigFeaturesSingleton,
-    type ConfigurationWithAccessToken,
+    type Configuration,
     type DefaultCodyCommands,
     ModelProvider,
     PromptMixin,
@@ -48,7 +48,6 @@ import { logDebug, logError } from './log'
 import { syncModelProviders } from './models/utils'
 import type { FixupTask } from './non-stop/FixupTask'
 import { CodyProExpirationNotifications } from './notifications/cody-pro-expiration'
-import { showSetupNotification } from './notifications/setup-notification'
 import { gitAPIinit } from './repository/repositoryHelpers'
 import { SearchViewProvider } from './search/SearchViewProvider'
 import { AuthProvider } from './services/AuthProvider'
@@ -61,12 +60,11 @@ import { VSCodeSecretStorage, getAccessToken, secretStorage } from './services/S
 import { registerSidebarCommands } from './services/SidebarCommands'
 import { createStatusBar } from './services/StatusBar'
 import { setUpCodyIgnore } from './services/cody-ignore'
-import { createOrUpdateEventLogger, telemetryService } from './services/telemetry'
-import { createOrUpdateTelemetryRecorderProvider, telemetryRecorder } from './services/telemetry-v2'
 import { onTextDocumentChange } from './services/utils/codeblock-action-tracker'
 import { enableDebugMode, exportOutputLog, openCodyOutputChannel } from './services/utils/export-logs'
 import { SupercompletionProvider } from './supercompletions/supercompletion-provider'
 import { parseAllVisibleDocuments, updateParseTreeOnEdit } from './tree-sitter/parse-tree-cache'
+import { createOrUpdateTelemetryRecorderProvider } from './services/telemetry-v2'
 
 /**
  * Start the extension, watching all relevant configuration and secrets for changes.
@@ -112,13 +110,13 @@ export async function start(
 // Registers commands and webview given the config.
 const register = async (
     context: vscode.ExtensionContext,
-    initialConfig: ConfigurationWithAccessToken,
+    initialConfig: Configuration,
     platform: PlatformContext
 ): Promise<{
     disposable: vscode.Disposable
-    onConfigurationChange: (newConfig: ConfigurationWithAccessToken) => Promise<void>
+    onConfigurationChange: (newConfig: Configuration) => Promise<void>
 }> => {
-    const authProvider = new AuthProvider(initialConfig)
+    const authProvider = new AuthProvider()
 
     const disposables: vscode.Disposable[] = []
     // Initialize `displayPath` first because it might be used to display paths in error messages
@@ -128,10 +126,11 @@ const register = async (
     // Set codyignore list after git extension startup
     disposables.push(await gitAPIinit())
 
-    const isExtensionModeDevOrTest =
-        context.extensionMode === vscode.ExtensionMode.Development ||
-        context.extensionMode === vscode.ExtensionMode.Test
-    await configureEventsInfra(initialConfig, isExtensionModeDevOrTest, authProvider)
+    await createOrUpdateTelemetryRecorderProvider(initialConfig, true, authProvider)
+    //const isExtensionModeDevOrTest =
+    //    context.extensionMode === vscode.ExtensionMode.Development ||
+    //    context.extensionMode === vscode.ExtensionMode.Test
+    //await configureEventsInfra(initialConfig, isExtensionModeDevOrTest, authProvider)
 
     const editor = new VSCodeEditor()
 
@@ -162,9 +161,10 @@ const register = async (
 
     await authProvider.init()
 
-    graphqlClient.onConfigurationChange(initialConfig)
+    //graphqlClient.onConfigurationChange(initialConfig)
     void featureFlagProvider.syncAuthStatus()
 
+    const fakeconfig = {...initialConfig, serverEndpoint: "", accessToken: "" }
     const {
         chatClient,
         codeCompletionsClient,
@@ -173,7 +173,7 @@ const register = async (
         contextRanking,
         onConfigurationChange: externalServicesOnDidConfigurationChange,
         symfRunner,
-    } = await configureExternalServices(context, initialConfig, platform, authProvider)
+    } = await configureExternalServices(context, fakeconfig, platform, authProvider)
 
     if (symfRunner) {
         disposables.push(symfRunner)
@@ -227,7 +227,7 @@ const register = async (
     disposables.push(ghostHintDecorator, editorManager, new CodeActionProvider({ contextProvider }))
 
     let oldConfig = JSON.stringify(initialConfig)
-    async function onConfigurationChange(newConfig: ConfigurationWithAccessToken): Promise<void> {
+    async function onConfigurationChange(newConfig: Configuration): Promise<void> {
         if (oldConfig === JSON.stringify(newConfig)) {
             return Promise.resolve()
         }
@@ -238,17 +238,18 @@ const register = async (
         oldConfig = JSON.stringify(newConfig)
 
         promises.push(featureFlagProvider.syncAuthStatus())
-        graphqlClient.onConfigurationChange(newConfig)
+        //graphqlClient.onConfigurationChange(newConfig)
         promises.push(contextProvider.onConfigurationChange(newConfig))
-        externalServicesOnDidConfigurationChange(newConfig)
-        promises.push(configureEventsInfra(newConfig, isExtensionModeDevOrTest, authProvider))
+        const fakeconfig = {...newConfig, serverEndpoint: "", accessToken: "" }
+        externalServicesOnDidConfigurationChange(fakeconfig)
+        //promises.push(configureEventsInfra(newConfig, isExtensionModeDevOrTest, authProvider))
         platform.onConfigurationChange?.(newConfig)
-        symfRunner?.setSourcegraphAuth(newConfig.serverEndpoint, newConfig.accessToken)
+        //symfRunner?.setSourcegraphAuth(newConfig.serverEndpoint, newConfig.accessToken)
         enterpriseContextFactory.clientConfigurationDidChange()
-        promises.push(
-            localEmbeddings?.setAccessToken(newConfig.serverEndpoint, newConfig.accessToken) ??
-                Promise.resolve()
-        )
+        //promises.push(
+        //    localEmbeddings?.setAccessToken(newConfig.serverEndpoint, newConfig.accessToken) ??
+        //        Promise.resolve()
+        //)
         promises.push(setupAutocomplete())
         await Promise.all(promises)
     }
@@ -370,7 +371,7 @@ const register = async (
         // Tests
         // Access token - this is only used in configuration tests
         vscode.commands.registerCommand('cody.test.token', async (url, token) =>
-            authProvider.auth(url, token)
+            authProvider.auth()
         ),
         // Auth
         vscode.commands.registerCommand('cody.auth.signin', () => authProvider.signinMenu()),
@@ -387,7 +388,7 @@ const register = async (
                 if (typeof accessToken !== 'string') {
                     throw new TypeError('accessToken is required')
                 }
-                return (await authProvider.auth(serverEndpoint, accessToken, customHeaders)).authStatus
+                return (await authProvider.auth()).authStatus
             }
         ),
         // Chat
@@ -463,12 +464,12 @@ const register = async (
             vscode.env.openExternal(vscode.Uri.parse(CODY_FEEDBACK_URL.href))
         ),
         vscode.commands.registerCommand('cody.welcome', async () => {
-            telemetryService.log(
-                'CodyVSCodeExtension:walkthrough:clicked',
-                { page: 'welcome' },
-                { hasV2Event: true }
-            )
-            telemetryRecorder.recordEvent('cody.walkthrough', 'clicked')
+            //telemetryService.log(
+            //    'CodyVSCodeExtension:walkthrough:clicked',
+            //    { page: 'welcome' },
+            //    { hasV2Event: true }
+            //)
+            //telemetryRecorder.recordEvent('cody.walkthrough', 'clicked')
             // Hack: We have to run this twice to force VS Code to register the walkthrough
             // Open issue: https://github.com/microsoft/vscode/issues/186165
             await vscode.commands.executeCommand('workbench.action.openWalkthrough')
@@ -495,12 +496,12 @@ const register = async (
             chatManager.setWebviewView('chat')
         ),
         vscode.commands.registerCommand('cody.walkthrough.showExplain', async () => {
-            telemetryService.log(
-                'CodyVSCodeExtension:walkthrough:clicked',
-                { page: 'showExplain' },
-                { hasV2Event: true }
-            )
-            telemetryRecorder.recordEvent('cody.walkthrough.showExplain', 'clicked')
+            //telemetryService.log(
+            //    'CodyVSCodeExtension:walkthrough:clicked',
+            //    { page: 'showExplain' },
+            //    { hasV2Event: true }
+            //)
+            //telemetryRecorder.recordEvent('cody.walkthrough.showExplain', 'clicked')
             await chatManager.setWebviewView('chat')
         }),
         // Check if user has just moved back from a browser window to upgrade cody pro
@@ -527,10 +528,10 @@ const register = async (
         // For register sidebar clicks
         vscode.commands.registerCommand('cody.sidebar.click', (name: string, command: string) => {
             const source: ChatEventSource = 'sidebar'
-            telemetryService.log(`CodyVSCodeExtension:command:${name}:clicked`, { source })
-            telemetryRecorder.recordEvent(`cody.command.${name}`, 'clicked', {
-                privateMetadata: { source },
-            })
+            //telemetryService.log(`CodyVSCodeExtension:command:${name}:clicked`, { source })
+            //telemetryRecorder.recordEvent(`cody.command.${name}`, 'clicked', {
+                //privateMetadata: { source },
+            //})
             void vscode.commands.executeCommand(command, [source])
         }),
         ...setUpCodyIgnore(initialConfig),
@@ -580,11 +581,11 @@ const register = async (
                 // completion provider.
                 disposeAutocomplete()
 
-                const autocompleteFeatureFlagChangeSubscriber = featureFlagProvider.onFeatureFlagChanged(
-                    'cody-autocomplete',
-                    setupAutocomplete
-                )
-                autocompleteDisposables.push({ dispose: autocompleteFeatureFlagChangeSubscriber })
+                //const autocompleteFeatureFlagChangeSubscriber = featureFlagProvider.onFeatureFlagChanged(
+                //    'cody-autocomplete',
+                //    setupAutocomplete
+                //)
+                //autocompleteDisposables.push({ dispose: autocompleteFeatureFlagChangeSubscriber })
                 autocompleteDisposables.push(
                     await createInlineCompletionItemProvider({
                         config,
@@ -619,7 +620,7 @@ const register = async (
     // `vscode.window.showInformationMessage()`, which only resolves after the
     // user has clicked on "Setup". Awaiting on this promise will make the Cody
     // extension timeout during activation.
-    void showSetupNotification(initialConfig)
+    // void showSetupNotification(initialConfig)
 
     // Register a serializer for reviving the chat panel on reload
     if (vscode.window.registerWebviewPanelSerializer) {
@@ -645,14 +646,14 @@ const register = async (
  * Create or update events infrastructure, both legacy (telemetryService) and
  * new (telemetryRecorder)
  */
-async function configureEventsInfra(
-    config: ConfigurationWithAccessToken,
-    isExtensionModeDevOrTest: boolean,
-    authProvider: AuthProvider
-): Promise<void> {
-    await createOrUpdateEventLogger(config, isExtensionModeDevOrTest, authProvider)
-    await createOrUpdateTelemetryRecorderProvider(config, isExtensionModeDevOrTest, authProvider)
-}
+//async function configureEventsInfra(
+//    config: Configuration,
+//    isExtensionModeDevOrTest: boolean,
+//    authProvider: AuthProvider
+//): Promise<void> {
+//    await createOrUpdateEventLogger(config, isExtensionModeDevOrTest, authProvider)
+//    await createOrUpdateTelemetryRecorderProvider(config, isExtensionModeDevOrTest, authProvider)
+//}
 
 export type CommandResult = ChatCommandResult | EditCommandResult
 export interface ChatCommandResult {

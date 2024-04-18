@@ -2,29 +2,21 @@ import * as vscode from 'vscode'
 
 import {
     type AuthStatus,
-    type ConfigurationWithAccessToken,
     DOTCOM_URL,
-    LOCAL_APP_URL,
-    SourcegraphGraphQLAPIClient,
     isDotCom,
-    isError,
 } from '@sourcegraph/cody-shared'
 
-import { CodyChatPanelViewType } from '../chat/chat-view/ChatManager'
+//import { CodyChatPanelViewType } from '../chat/chat-view/ChatManager'
 import {
     ACCOUNT_USAGE_URL,
     defaultAuthStatus,
-    isLoggedIn as isAuthed,
     isSourcegraphToken,
-    networkErrorAuthStatus,
-    unauthenticatedStatus,
 } from '../chat/protocol'
 import { newAuthStatus } from '../chat/utils'
-import { getFullConfig } from '../configuration'
 import { logDebug } from '../log'
 
-import { closeAuthProgressIndicator } from '../auth/auth-progress-indicator'
-import { AuthMenu, showAccessTokenInputBox, showInstanceURLInputBox } from './AuthMenus'
+//import { closeAuthProgressIndicator } from '../auth/auth-progress-indicator'
+//import { AuthMenu, showAccessTokenInputBox, showInstanceURLInputBox } from './AuthMenus'
 import { getAuthReferralCode } from './AuthProviderSimplified'
 import { localStorage } from './LocalStorageProvider'
 import { secretStorage } from './SecretStorageProvider'
@@ -35,36 +27,22 @@ type Listener = (authStatus: AuthStatus) => void
 type Unsubscribe = () => void
 
 export class AuthProvider {
-    private endpointHistory: string[] = []
+    //private endpointHistory: string[] = []
 
-    private client: SourcegraphGraphQLAPIClient | null = null
+    //private client: SourcegraphGraphQLAPIClient | null = null
 
     private authStatus: AuthStatus = defaultAuthStatus
     private listeners: Set<Listener> = new Set()
 
-    constructor(
-        private config: Pick<
-            ConfigurationWithAccessToken,
-            'serverEndpoint' | 'accessToken' | 'customHeaders'
-        >
-    ) {
+    constructor() {
         this.authStatus.endpoint = 'init'
         this.loadEndpointHistory()
     }
 
     // Sign into the last endpoint the user was signed into, if any
     public async init(): Promise<void> {
-        let lastEndpoint = localStorage?.getEndpoint() || this.config.serverEndpoint
-        let token = (await secretStorage.get(lastEndpoint || '')) || this.config.accessToken
-        if (lastEndpoint === LOCAL_APP_URL.toString()) {
-            // If the user last signed in to app, which talks to dotcom, try
-            // signing them in to dotcom.
-            logDebug('AuthProvider:init', 'redirecting App-signed in user to dotcom')
-            lastEndpoint = DOTCOM_URL.toString()
-            token = (await secretStorage.get(lastEndpoint)) || null
-        }
-        logDebug('AuthProvider:init:lastEndpoint', lastEndpoint)
-        await this.auth(lastEndpoint, token || null)
+        logDebug('AuthProvider:init', 'Authenticating!')
+        await this.auth()
     }
 
     public addChangeListener(listener: Listener): Unsubscribe {
@@ -74,6 +52,7 @@ export class AuthProvider {
 
     // Display quickpick to select endpoint to sign in to
     public async signinMenu(type?: 'enterprise' | 'dotcom' | 'token', uri?: string): Promise<void> {
+        /*
         const mode = this.authStatus.isLoggedIn ? 'switch' : 'signin'
         logDebug('AuthProvider:signinMenu', mode)
         telemetryService.log('CodyVSCodeExtension:login:clicked', {}, { hasV2Event: true })
@@ -128,9 +107,12 @@ export class AuthProvider {
                 logDebug('AuthProvider:signinMenu', mode, selectedEndpoint)
             }
         }
+        */
     }
 
     private async signinMenuForInstanceUrl(instanceUrl: string): Promise<void> {
+        return
+        /*
         const accessToken = await showAccessTokenInputBox(instanceUrl)
         if (!accessToken) {
             return
@@ -149,6 +131,7 @@ export class AuthProvider {
             },
         })
         await showAuthResultMessage(instanceUrl, authState?.authStatus)
+        */
     }
 
     public async signoutMenu(): Promise<void> {
@@ -213,18 +196,43 @@ export class AuthProvider {
 
     // Log user out of the selected endpoint (remove token from secret)
     private async signout(endpoint: string): Promise<void> {
+        return
+        /*
         await secretStorage.deleteToken(endpoint)
         await localStorage.deleteEndpoint()
         await this.auth(endpoint, null)
         this.authStatus.endpoint = ''
         await vscode.commands.executeCommand('setContext', CodyChatPanelViewType, false)
         await vscode.commands.executeCommand('setContext', 'cody.activated', false)
+        */
     }
 
     // Create Auth Status
-    private async makeAuthStatus(
-        config: Pick<ConfigurationWithAccessToken, 'serverEndpoint' | 'accessToken' | 'customHeaders'>
-    ): Promise<AuthStatus> {
+    private async makeAuthStatus(): Promise<AuthStatus> {
+        return newAuthStatus(
+            /*endpoint=*/"",
+            /*isDotCom=*/false,
+            /*user=*/true,
+            /*isEmailVerified=*/true,
+            /*isCodyEnabled=*/true,
+            /*userCanUpgrade=*/true,
+            /*version=*/"",
+            /*avatarURL=*/"",
+            /*username=*/"Patosga",
+            /*displayName=*/"Patosga",
+            /*primaryEmail=*/"",
+        )
+        /*const defaultAuthStatus: AuthStatus = {
+            authenticated: true,
+            displayName: 'Pedro',
+            endpoint: '',
+            isLoggedIn: true,
+            primaryEmail: '',
+            username: 'Pedro',
+            userCanUpgrade: true,
+        }
+        return defaultAuthStatus
+        /*
         const endpoint = config.serverEndpoint
         const token = config.accessToken
         if (!token || !endpoint) {
@@ -263,7 +271,7 @@ export class AuthProvider {
                 !isError(userInfo),
                 hasVerifiedEmail,
                 enabled,
-                /* userCanUpgrade: */ false,
+                false,
                 version,
                 userInfo.avatarURL,
                 userInfo.username,
@@ -302,7 +310,7 @@ export class AuthProvider {
             userInfo.displayName,
             userInfo.primaryEmail?.email,
             configOverwrites
-        )
+        )*/
     }
 
     public getAuthStatus(): AuthStatus {
@@ -311,18 +319,11 @@ export class AuthProvider {
 
     // It processes the authentication steps and stores the login info before sharing the auth status with chatview
     public async auth(
-        uri: string,
-        token: string | null,
-        customHeaders?: Record<string, string> | null
     ): Promise<{ authStatus: AuthStatus; isLoggedIn: boolean }> {
-        const endpoint = formatURL(uri) || ''
-        const config = {
-            serverEndpoint: endpoint,
-            accessToken: token,
-            customHeaders: customHeaders || this.config.customHeaders,
-        }
-        const authStatus = await this.makeAuthStatus(config)
-        const isLoggedIn = isAuthed(authStatus)
+        const endpoint = ''
+        const token = ''
+        const authStatus = await this.makeAuthStatus()
+        const isLoggedIn = true // isAuthed(authStatus)
         authStatus.isLoggedIn = isLoggedIn
         await this.storeAuthInfo(endpoint, token)
         this.syncAuthStatus(authStatus)
@@ -332,8 +333,8 @@ export class AuthProvider {
 
     // Set auth status in case of reload
     public async reloadAuthStatus(): Promise<void> {
-        this.config = await getFullConfig()
-        await this.auth(this.config.serverEndpoint, this.config.accessToken, this.config.customHeaders)
+        // Assume that the user is always signed-in
+        await this.auth()
     }
 
     // Set auth status and share it with chatview
@@ -361,6 +362,8 @@ export class AuthProvider {
         uri: vscode.Uri,
         customHeaders: Record<string, string>
     ): Promise<void> {
+        return
+        /*
         closeAuthProgressIndicator()
 
         const params = new URLSearchParams(uri.query)
@@ -369,7 +372,7 @@ export class AuthProvider {
         if (!token || !endpoint) {
             return
         }
-        const authState = await this.auth(endpoint, token, customHeaders)
+        const authState = await this.auth(endpoint, token,)
         telemetryService.log(
             'CodyVSCodeExtension:auth:fromCallback',
             {
@@ -388,7 +391,7 @@ export class AuthProvider {
             await vscode.window.showInformationMessage(`Signed in to ${endpoint}`)
         } else {
             await showAuthFailureMessage(endpoint)
-        }
+        }*/
     }
 
     /** Open callback URL in browser to get token from instance. */
@@ -416,7 +419,7 @@ export class AuthProvider {
 
     // Refresh current endpoint history with the one from local storage
     private loadEndpointHistory(): void {
-        this.endpointHistory = localStorage.getEndpointHistory() || []
+        return
     }
 
     // Store endpoint in local storage, token in secret storage, and update endpoint history
@@ -482,21 +485,21 @@ function formatURL(uri: string): string | null {
     }
 }
 
-async function showAuthResultMessage(
-    endpoint: string,
-    authStatus: AuthStatus | undefined
-): Promise<void> {
-    if (authStatus?.isLoggedIn) {
-        const authority = vscode.Uri.parse(endpoint).authority
-        await vscode.window.showInformationMessage(`Signed in to ${authority || endpoint}`)
-    } else {
-        await showAuthFailureMessage(endpoint)
-    }
-}
+//async function showAuthResultMessage(
+//    endpoint: string,
+//    authStatus: AuthStatus | undefined
+//): Promise<void> {
+//    if (authStatus?.isLoggedIn) {
+//        const authority = vscode.Uri.parse(endpoint).authority
+//        await vscode.window.showInformationMessage(`Signed in to ${authority || endpoint}`)
+//    } else {
+//        await showAuthFailureMessage(endpoint)
+//    }
+//}
 
-async function showAuthFailureMessage(endpoint: string): Promise<void> {
-    const authority = vscode.Uri.parse(endpoint).authority
-    await vscode.window.showErrorMessage(
-        `Authentication failed. Please ensure Cody is enabled for ${authority} and verify your email address if required.`
-    )
-}
+//async function showAuthFailureMessage(endpoint: string): Promise<void> {
+//    const authority = vscode.Uri.parse(endpoint).authority
+//    await vscode.window.showErrorMessage(
+//        `Authentication failed. Please ensure Cody is enabled for ${authority} and verify your email address if required.`
+//    )
+//}

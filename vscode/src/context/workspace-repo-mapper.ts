@@ -1,8 +1,8 @@
-import { graphqlClient, isError, logDebug } from '@sourcegraph/cody-shared'
+import { logDebug } from '@sourcegraph/cody-shared'
 import * as vscode from 'vscode'
 import { getCodebaseFromWorkspaceUri, gitAPI } from '../repository/repositoryHelpers'
 import type { CodebaseRepoIdMapper } from './enterprise-context-factory'
-import { RemoteSearch } from './remote-search'
+//import { RemoteSearch } from './remote-search'
 import type { Repo } from './repo-fetcher'
 
 // TODO(dpc): The vscode.git extension has an delay before we can fetch a
@@ -43,16 +43,18 @@ export class WorkspaceRepoMapper implements vscode.Disposable, CodebaseRepoIdMap
                 name: item.name,
             }
         }
-        const result = await graphqlClient.getRepoId(repoName)
-        if (isError(result)) {
-            throw result
-        }
-        if (!result) {
-            return
-        }
+        // Disable the query to the graphql API for now.
+        // What should the ID be here?
+        // const result = await graphqlClient.getRepoId(repoName)
+        // if (isError(result)) {
+        //     throw result
+        // }
+        // if (!result) {
+        //     return
+        // }
         return {
             name: repoName,
-            id: result,
+            id: "0",
         }
     }
 
@@ -135,10 +137,10 @@ export class WorkspaceRepoMapper implements vscode.Disposable, CodebaseRepoIdMap
             // Otherwise we fetch the first 10 repos from the Sourcegraph instance
             return []
         }
-        const ids = await graphqlClient.getRepoIds([...repoNames.values()], RemoteSearch.MAX_REPO_COUNT)
-        if (isError(ids)) {
-            throw ids
-        }
-        return ids
+        // const ids = await graphqlClient.getRepoIds([...repoNames.values()], RemoteSearch.MAX_REPO_COUNT)
+        // if (isError(ids)) {
+        //     throw ids
+        // }
+        return []
     }
 }

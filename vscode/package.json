@@ -1069,7 +1069,10 @@
           "default": true,
           "markdownDescription": "Display commands in hover tooltips for code elements.",
           "description": "%config.experimental.hoverCommands%",
-          "tags": ["experimental", "feature-flag"]
+          "tags": [
+            "experimental",
+            "feature-flag"
+          ]
         },
         "cody.autocomplete.experimental.hotStreak": {
           "type": "boolean",
@@ -1226,6 +1229,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.4.2",
     "@floating-ui/react": "^0.26.9",
+    "@langchain/openai": "^0.0.28",
     "@lexical/code": "^0.13.1",
     "@lexical/html": "^0.13.1",
     "@lexical/react": "^0.13.1",
@@ -1258,6 +1262,7 @@
     "glob": "^7.2.3",
     "isomorphic-fetch": "^3.0.0",
     "js-levenshtein": "^1.1.6",
+    "langchain": "^0.1.33",
     "lexical": "^0.13.1",
     "lodash": "^4.17.21",
     "lru-cache": "^10.0.0",

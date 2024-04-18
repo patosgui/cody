@@ -3,7 +3,7 @@ import type { URI } from 'vscode-uri'
 import type {
     AuthStatus,
     ChatMessage,
-    ConfigurationWithAccessToken,
+    Configuration,
     ContextItem,
     EnhancedContextContextT,
     ModelProvider,
@@ -178,8 +178,8 @@ export interface ExtensionTranscriptMessage {
  */
 export interface ConfigurationSubsetForWebview
     extends Pick<
-        ConfigurationWithAccessToken,
-        'debugEnable' | 'experimentalGuardrails' | 'serverEndpoint'
+        Configuration,
+        'debugEnable' | 'experimentalGuardrails'
     > {}
 
 /**

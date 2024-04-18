@@ -3,8 +3,6 @@ import * as vscode from 'vscode'
 import {
     type Configuration,
     type ConfigurationUseContext,
-    type ConfigurationWithAccessToken,
-    DOTCOM_URL,
     OLLAMA_DEFAULT_URL,
 } from '@sourcegraph/cody-shared'
 
@@ -14,8 +12,6 @@ import {
     type ConfigurationKeysMap,
     getConfigEnumValues,
 } from './configuration-keys'
-import { localStorage } from './services/LocalStorageProvider'
-import { getAccessToken } from './services/SecretStorageProvider'
 
 interface ConfigGetter {
     get<T>(section: (typeof CONFIG_KEY)[ConfigKeys], defaultValue?: T): T
@@ -191,13 +187,9 @@ function sanitizeCodebase(codebase: string | undefined): string {
     return codebase.replace(protocolRegexp, '').trim().replace(trailingSlashRegexp, '')
 }
 
-export const getFullConfig = async (): Promise<ConfigurationWithAccessToken> => {
+export const getFullConfig = async (): Promise<Configuration> => {
     const config = getConfiguration()
-    const isTesting = process.env.CODY_TESTING === 'true'
-    const serverEndpoint =
-        localStorage?.getEndpoint() || (isTesting ? 'http://localhost:49300/' : DOTCOM_URL.href)
-    const accessToken = (await getAccessToken()) || null
-    return { ...config, accessToken, serverEndpoint }
+    return { ...config }
 }
 
 function checkValidEnumValues(configName: string, value: string | null): void {

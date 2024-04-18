@@ -1,7 +1,7 @@
 import {
     type AuthStatus,
     type CodeCompletionsClient,
-    type ConfigurationWithAccessToken,
+    type Configuration,
     FeatureFlag,
     featureFlagProvider,
 } from '@sourcegraph/cody-shared'
@@ -17,12 +17,12 @@ import {
     type FireworksOptions,
     createProviderConfig as createFireworksProviderConfig,
 } from './fireworks'
-import { createProviderConfig as createOpenAICompatibleProviderConfig } from './openaicompatible'
+//import { createProviderConfig as createOpenAICompatibleProviderConfig } from './openaicompatible'
 import type { ProviderConfig } from './provider'
 import { createProviderConfig as createUnstableOpenAIProviderConfig } from './unstable-openai'
 
 export async function createProviderConfig(
-    config: ConfigurationWithAccessToken,
+    config: Configuration,
     client: CodeCompletionsClient,
     authStatus: AuthStatus
 ): Promise<ProviderConfig | null> {
@@ -53,15 +53,14 @@ export async function createProviderConfig(
             case 'anthropic': {
                 return createAnthropicProviderConfig({ client, model })
             }
-            case 'experimental-openaicompatible': {
-                return createOpenAICompatibleProviderConfig({
-                    client,
-                    model: config.autocompleteAdvancedModel ?? model ?? null,
-                    timeouts: config.autocompleteTimeouts,
-                    authStatus,
-                    config,
-                })
-            }
+            //case 'experimental-openaicompatible': {
+            //    return createOpenAICompatibleProviderConfig({
+            //        client,
+            //        model: config.autocompleteAdvancedModel ?? model ?? null,
+            //        timeouts: config.autocompleteTimeouts,
+            //        authStatus,
+            //    })
+            //}
             case 'experimental-ollama':
             case 'unstable-ollama': {
                 return createExperimentalOllamaProviderConfig(
@@ -112,14 +111,14 @@ export async function createProviderConfig(
                     authStatus,
                     config,
                 })
-            case 'experimental-openaicompatible':
-                return createOpenAICompatibleProviderConfig({
-                    client,
-                    timeouts: config.autocompleteTimeouts,
-                    model: model ?? null,
-                    authStatus,
-                    config,
-                })
+            //case 'experimental-openaicompatible':
+            //    return createOpenAICompatibleProviderConfig({
+            //        client,
+            //        timeouts: config.autocompleteTimeouts,
+            //        model: model ?? null,
+            //        authStatus,
+            //        config,
+            //    })
             case 'aws-bedrock':
             case 'anthropic':
                 return createAnthropicProviderConfig({

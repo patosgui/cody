@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 
 import type {
-    ConfigurationWithAccessToken,
+    Configuration,
     ContextGroup,
     ContextStatusProvider,
 } from '@sourcegraph/cody-shared'
@@ -21,14 +21,12 @@ import type { SidebarChatWebview } from './chat-view/SidebarViewController'
 import type { ConfigurationSubsetForWebview, LocalEnv } from './protocol'
 
 export type Config = Pick<
-    ConfigurationWithAccessToken,
+    Configuration,
     | 'codebase'
-    | 'serverEndpoint'
     | 'debugEnable'
     | 'debugFilter'
     | 'debugVerbose'
     | 'customHeaders'
-    | 'accessToken'
     | 'useContext'
     | 'codeActions'
     | 'experimentalGuardrails'
@@ -106,10 +104,6 @@ export class ContextProvider implements vscode.Disposable, ContextStatusProvider
     public onConfigurationChange(newConfig: Config): Promise<void> {
         logDebug('ContextProvider:onConfigurationChange', 'using codebase', newConfig.codebase)
         this.config = newConfig
-        const authStatus = this.authProvider.getAuthStatus()
-        if (authStatus.endpoint) {
-            this.config.serverEndpoint = authStatus.endpoint
-        }
 
         if (this.configurationChangeEvent instanceof AgentEventEmitter) {
             // NOTE: we must return a promise here from the event handlers to
@@ -187,7 +181,6 @@ export class ContextProvider implements vscode.Disposable, ContextStatusProvider
             const configForWebview: ConfigurationSubsetForWebview & LocalEnv = {
                 uiKindIsWeb: vscode.env.uiKind === vscode.UIKind.Web,
                 debugEnable: this.config.debugEnable,
-                serverEndpoint: this.config.serverEndpoint,
                 experimentalGuardrails: this.config.experimentalGuardrails,
             }
             const workspaceFolderUris =

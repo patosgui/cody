@@ -11,11 +11,8 @@ import {
 import {
     CONTEXT_SELECTION_ID,
     type Configuration,
-    type ConfigurationWithAccessToken,
 } from '../configuration'
-import { SourcegraphGraphQLAPIClient } from '../sourcegraph-api/graphql'
 import type { LogEventMode } from '../sourcegraph-api/graphql/client'
-import { GraphQLTelemetryExporter } from '../sourcegraph-api/telemetry/GraphQLTelemetryExporter'
 import { MockServerTelemetryExporter } from '../sourcegraph-api/telemetry/MockServerTelemetryExporter'
 
 import type { BillingCategory, BillingProduct } from '.'
@@ -42,12 +39,12 @@ export class TelemetryRecorderProvider extends BaseTelemetryRecorderProvider<
 > {
     constructor(
         extensionDetails: ExtensionDetails,
-        config: ConfigurationWithAccessToken,
+        config: Configuration,
         getAuthStatus: () => AuthStatus,
         anonymousUserID: string,
         legacyBackcompatLogEventMode: LogEventMode
     ) {
-        const client = new SourcegraphGraphQLAPIClient(config)
+        console.log("TelemetryRecorderProvider constructor", anonymousUserID, legacyBackcompatLogEventMode)
         super(
             {
                 client: `${extensionDetails.ide || 'unknown'}${
@@ -55,17 +52,15 @@ export class TelemetryRecorderProvider extends BaseTelemetryRecorderProvider<
                 }`,
                 clientVersion: extensionDetails.version,
             },
-            process.env.CODY_TELEMETRY_EXPORTER === 'testing'
-                ? new TestTelemetryExporter()
-                : new GraphQLTelemetryExporter(client, anonymousUserID, legacyBackcompatLogEventMode),
+            
+            new TestTelemetryExporter(),
             [
                 new ConfigurationMetadataProcessor(config, getAuthStatus),
-                // Generate timestamps when recording events, instead of serverside
                 new TimestampTelemetryProcessor(),
             ],
             {
                 ...defaultEventRecordingOptions,
-                bufferTimeMs: 0, // disable buffering for now
+                bufferTimeMs: 0,
             }
         )
     }
@@ -101,7 +96,7 @@ export class MockServerTelemetryRecorderProvider extends BaseTelemetryRecorderPr
 > {
     constructor(
         extensionDetails: ExtensionDetails,
-        config: ConfigurationWithAccessToken,
+        config: Configuration,
         getAuthStatus: () => AuthStatus,
         anonymousUserID: string
     ) {

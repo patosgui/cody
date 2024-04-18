@@ -13,7 +13,7 @@ import { logDebug } from '../../log'
 
 import { PromptBuilder } from '../../prompt-builder'
 import type { SimpleChatModel } from './SimpleChatModel'
-import { sortContextItems } from './agentContextSorting'
+//import { sortContextItems } from './agentContextSorting'
 
 interface PromptInfo {
     prompt: Message[]
@@ -25,7 +25,7 @@ export interface IPrompter {
     makePrompt(chat: SimpleChatModel, codyApiVersion: number, charLimit: number): Promise<PromptInfo>
 }
 
-const ENHANCED_CONTEXT_ALLOCATION = 0.6 // Enhanced context should take up 60% of the context window
+//const ENHANCED_CONTEXT_ALLOCATION = 0.6 // Enhanced context should take up 60% of the context window
 
 export class DefaultPrompter implements IPrompter {
     constructor(
@@ -47,7 +47,7 @@ export class DefaultPrompter implements IPrompter {
         newContextIgnored?: ContextItem[]
     }> {
         return wrapInActiveSpan('chat.prompter', async () => {
-            const enhancedContextCharLimit = Math.floor(charLimit * ENHANCED_CONTEXT_ALLOCATION)
+            //const enhancedContextCharLimit = Math.floor(charLimit * ENHANCED_CONTEXT_ALLOCATION)
             const promptBuilder = new PromptBuilder(charLimit)
             const newContextUsed: ContextItem[] = []
             const preInstruction: string | undefined = vscode.workspace
@@ -112,23 +112,24 @@ export class DefaultPrompter implements IPrompter {
                 throw new Error('Last message in prompt needs speaker "human", but was "assistant"')
             }
             if (this.getEnhancedContext) {
-                // Add additional context from current editor or broader search
-                const additionalContextItems = await this.getEnhancedContext(
-                    lastMessage.text,
-                    enhancedContextCharLimit
-                )
-                sortContextItems(additionalContextItems)
-                const { limitReached, used, ignored } = promptBuilder.tryAddContext(
-                    additionalContextItems,
-                    enhancedContextCharLimit
-                )
-                newContextUsed.push(...used)
-                if (limitReached) {
-                    logDebug(
-                        'DefaultPrompter.makePrompt',
-                        `Ignored ${ignored.length} additional context items due to limit reached`
-                    )
-                }
+                logDebug("DefaultPrompter", "getEnhancedContext")
+            //    // Add additional context from current editor or broader search
+            //    const additionalContextItems = await this.getEnhancedContext(
+            //        lastMessage.text,
+            //        enhancedContextCharLimit
+            //    )
+            //    sortContextItems(additionalContextItems)
+            //    const { limitReached, used, ignored } = promptBuilder.tryAddContext(
+            //        additionalContextItems,
+            //        enhancedContextCharLimit
+            //    )
+            //    newContextUsed.push(...used)
+            //    if (limitReached) {
+            //        logDebug(
+            //            'DefaultPrompter.makePrompt',
+            //            `Ignored ${ignored.length} additional context items due to limit reached`
+            //        )
+            //    }
             }
 
             return {

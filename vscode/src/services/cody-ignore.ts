@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 
 import {
     CODY_IGNORE_POSIX_GLOB,
-    type ConfigurationWithAccessToken,
+    type Configuration,
     type IgnoreFileContent,
     ignores,
 } from '@sourcegraph/cody-shared'
@@ -19,7 +19,7 @@ const utf8 = new TextDecoder('utf-8')
  *
  * NOTE: Execute ONCE at extension activation time.
  */
-export function setUpCodyIgnore(config: ConfigurationWithAccessToken): vscode.Disposable[] {
+export function setUpCodyIgnore(config: Configuration): vscode.Disposable[] {
     ignores.setActiveState(config.internalUnstable)
     if (!config.internalUnstable) {
         return []

@@ -2,6 +2,11 @@ import { isError } from '../../utils'
 
 import type { Event } from './types'
 
+import {
+    CompletionStopReason,
+} from '../../inferenceClient/misc'
+
+
 const EVENT_LINE_PREFIX = 'event: '
 const DATA_LINE_PREFIX = 'data: '
 const EVENTS_SEPARATOR = '\n\n'
@@ -37,14 +42,15 @@ function parseEventData(eventType: Event['type'], dataLine: string): Event | Err
     const jsonData = dataLine.slice(DATA_LINE_PREFIX.length)
     switch (eventType) {
         case 'completion': {
-            const data = parseJSON<{ completion: string; stopReason: string }>(jsonData)
-            if (isError(data)) {
-                return data
-            }
-            if (typeof data.completion === 'undefined') {
-                return new Error('invalid completion event')
-            }
-            return { type: eventType, completion: data.completion, stopReason: data.stopReason }
+            //const data = parseJSON<{ completion: string; stopReason: string }>(jsonData)
+            //if (isError(data)) {
+            //    return data
+            //}
+            //if (typeof data.completion === 'undefined') {
+            //    return new Error('invalid completion event')
+            //}
+            const decodedString = decodeURIComponent(JSON.parse('"' + jsonData + '"'))
+            return { type: eventType, completion: decodedString, stopReason: CompletionStopReason.RequestFinished }
         }
         case 'error': {
             const data = parseJSON<{ error: string }>(jsonData)

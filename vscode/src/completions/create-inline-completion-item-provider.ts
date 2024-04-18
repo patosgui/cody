@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 
 import {
     type CodeCompletionsClient,
-    type ConfigurationWithAccessToken,
+    type Configuration,
     featureFlagProvider,
     isDotCom,
 } from '@sourcegraph/cody-shared'
@@ -18,7 +18,7 @@ import { createProviderConfig } from './providers/create-provider'
 import { registerAutocompleteTraceView } from './tracer/traceView'
 
 interface InlineCompletionItemProviderArgs {
-    config: ConfigurationWithAccessToken
+    config: Configuration
     client: CodeCompletionsClient
     statusBar: CodyStatusBar
     authProvider: AuthProvider

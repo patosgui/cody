@@ -1,7 +1,7 @@
 import * as uuid from 'uuid'
 import type { Memento } from 'vscode'
 
-import type { AuthStatus, ChatHistory, UserLocalHistory } from '@sourcegraph/cody-shared'
+import { DOTCOM_URL, type AuthStatus, type ChatHistory, type UserLocalHistory } from '@sourcegraph/cody-shared'
 
 import { isSourcegraphToken } from '../chat/protocol'
 
@@ -42,13 +42,7 @@ class LocalStorage {
     }
 
     public getEndpoint(): string | null {
-        const endpoint = this.storage.get<string | null>(this.LAST_USED_ENDPOINT, null)
-        // Clear last used endpoint if it is a Sourcegraph token
-        if (endpoint && isSourcegraphToken(endpoint)) {
-            this.deleteEndpoint()
-            return null
-        }
-        return endpoint
+        return DOTCOM_URL.href
     }
 
     public async saveEndpoint(endpoint: string): Promise<void> {

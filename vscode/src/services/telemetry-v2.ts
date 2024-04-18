@@ -1,5 +1,5 @@
 import {
-    type ConfigurationWithAccessToken,
+    type Configuration,
     type LogEventMode,
     MockServerTelemetryRecorderProvider,
     NoOpTelemetryRecorderProvider,
@@ -75,7 +75,7 @@ function updateGlobalInstances(updatedProvider: TelemetryRecorderProvider & { no
  * https://sourcegraph.com/docs/dev/background-information/telemetry
  */
 export async function createOrUpdateTelemetryRecorderProvider(
-    config: ConfigurationWithAccessToken,
+    config: Configuration,
     /**
      * Hardcode isExtensionModeDevOrTest to false to test real exports - when
      * true, exports are logged to extension output instead.

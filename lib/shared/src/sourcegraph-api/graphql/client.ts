@@ -286,6 +286,7 @@ export class SourcegraphGraphQLAPIClient {
 
     private get config(): GraphQLAPIClientConfig {
         if (!this._config) {
+            console.trace(new Error('GraphQLAPIClientConfig is not set'))
             throw new Error('GraphQLAPIClientConfig is not set')
         }
 
@@ -779,7 +780,7 @@ export class SourcegraphGraphQLAPIClient {
                 .then(verifyResponseCode)
                 .then(response => response.json() as T)
                 .catch(error => {
-                    return new Error(`accessing Sourcegraph GraphQL API: ${error} (${url})`)
+                    return new Error(`accessing lol Sourcegraph GraphQL API: ${error} (${url})`)
                 })
         )
     }
