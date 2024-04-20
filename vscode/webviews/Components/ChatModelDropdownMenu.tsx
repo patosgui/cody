@@ -4,7 +4,7 @@ import { type ComponentProps, useCallback, useRef, useState } from 'react'
 import { VSCodeDropdown, VSCodeOption } from '@vscode/webview-ui-toolkit/react'
 import classNames from 'classnames'
 
-import { AnthropicLogo, MistralLogo, OllamaLogo, OpenAILogo } from '../icons/LLMProviderIcons'
+import { MistralLogo, OllamaLogo, OpenAILogo } from '../icons/LLMProviderIcons'
 
 import { getVSCodeAPI } from '../utils/VSCodeApi'
 
@@ -142,7 +142,7 @@ const ProviderIcon = ({ model, className }: { model: string; className?: string 
         return <OpenAILogo className={className} />
     }
     if (model.startsWith('anthropic/')) {
-        return <AnthropicLogo className={className} />
+        return <OllamaLogo className={className} />
     }
     if (model.includes('mixtral')) {
         return <MistralLogo className={className} />

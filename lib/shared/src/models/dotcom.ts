@@ -18,7 +18,7 @@ export const DEFAULT_DOT_COM_MODELS = [
         title: 'Llama 3 (Ollama)',
         // easter egg, just kidding. But can't put "ollama" here since there is
         // some check down the line that breaks support for llama
-        model: 'mixtral-8x23B-instruct',
+        model: 'anthropic/claude-2.0',
         provider: 'Ollama',
         default: true,
         codyProOnly: false,
