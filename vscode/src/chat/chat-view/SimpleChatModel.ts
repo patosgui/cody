@@ -28,6 +28,11 @@ export class SimpleChatModel {
         this.maxChars = ModelProvider.getMaxCharsByModel(this.modelID)
     }
 
+    public updateModel(newModelID: string): void {
+        this.modelID = newModelID
+        //this.contextWindow = ModelProvider.getContextWindowByID(this.modelID)
+    }
+
     public isEmpty(): boolean {
         return this.messages.length === 0
     }

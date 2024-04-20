@@ -60,7 +60,7 @@ export class ModelProvider {
         ModelProvider.primaryProviders = providers
     }
 
-    /**
+        /**
      * Add new providers as primary model providers.
      */
     public static addProviders(providers: ModelProvider[]): void {

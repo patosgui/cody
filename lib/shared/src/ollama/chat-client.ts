@@ -23,7 +23,7 @@ export const mistralChatClient = async(
     cb: CompletionCallbacks,
 ) => {
     const model = new ChatMistralAI({
-        apiKey: process.env.CODY_MISTRAL_API_KEY,
+        apiKey: process.env.MISTRAL_API_KEY,
         modelName: "open-mixtral-8x22b",
     });
     // Check later: https://medium.com/@2018.itsuki/implement-langchain-conversationsummarybuffermemory-in-next-js-using-typescript-b956a15e4103
