@@ -1229,6 +1229,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.4.2",
     "@floating-ui/react": "^0.26.9",
+    "@langchain/community": "^0.0.0",
     "@langchain/openai": "^0.0.28",
     "@lexical/code": "^0.13.1",
     "@lexical/html": "^0.13.1",

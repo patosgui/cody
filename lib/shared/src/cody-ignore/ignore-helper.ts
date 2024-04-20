@@ -5,6 +5,7 @@ import { pathFunctionsForURI } from '../common/path'
 import { isWindows } from '../common/platform'
 import { uriBasename } from '../common/uri'
 import { uriHasPrefix } from '../editor/displayPath'
+import { logDebug } from '../logger'
 
 /**
  * The Cody ignore URI path.
@@ -56,6 +57,9 @@ export class IgnoreHelper {
 
         this.ensureAbsolute('workspaceRoot', workspaceRoot)
 
+
+        logDebug("IgnoreHelper", `Processing ignore rules for workspace ${workspaceRoot}:`)
+
         const rules = this.getDefaultIgnores()
         for (const ignoreFile of ignoreFiles) {
             this.ensureValidCodyIgnoreFile('ignoreFile.uri', ignoreFile.uri)
@@ -89,7 +93,10 @@ export class IgnoreHelper {
                 const ignoreRule = relativeFolderUriPath.length
                     ? `${relativeFolderUriPath}/${ignoreLine}`
                     : ignoreLine
-                rules.add((isInverted ? '!' : '') + ignoreRule)
+
+                let finalIgnoreRule = (isInverted ? '!' : '') + ignoreRule
+                logDebug("IgnoreHelper", `Adding rule: ${finalIgnoreRule}`)
+                rules.add((isInverted ? '!' : '') + finalIgnoreRule)
             }
         }
 

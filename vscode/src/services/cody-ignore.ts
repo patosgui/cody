@@ -20,10 +20,12 @@ const utf8 = new TextDecoder('utf-8')
  * NOTE: Execute ONCE at extension activation time.
  */
 export function setUpCodyIgnore(config: Configuration): vscode.Disposable[] {
-    ignores.setActiveState(config.internalUnstable)
-    if (!config.internalUnstable) {
-        return []
-    }
+    // Enable Cody Ignore
+    ignores.setActiveState(true)
+    // ignores.setActiveState(config.internalUnstable)
+    //if (!config.internalUnstable) {
+    //    return []
+    //}
 
     // Enable ignore and then handle existing workspace folders.
     vscode.workspace.workspaceFolders?.map(async wf => await refresh(wf.uri))
@@ -153,6 +155,7 @@ async function refresh(uri: vscode.Uri): Promise<void> {
         undefined,
         newToken.token
     )
+
     const filesWithContent: IgnoreFileContent[] = await Promise.all(
         ignoreFiles?.map(async fileUri => ({
             uri: fileUri,
