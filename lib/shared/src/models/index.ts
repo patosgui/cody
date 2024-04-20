@@ -61,6 +61,17 @@ export class ModelProvider {
     }
 
     /**
+     * Add new providers as primary model providers.
+     */
+    public static addProviders(providers: ModelProvider[]): void {
+        const set = new Set(ModelProvider.primaryProviders)
+        for (const provider of providers) {
+            set.add(provider)
+        }
+        ModelProvider.primaryProviders = Array.from(set)
+    }
+
+    /**
      * Get the list of the primary models providers with local models.
      * If currentModel is provided, sets it as the default model.
      */

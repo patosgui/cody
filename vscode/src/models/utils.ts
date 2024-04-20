@@ -1,10 +1,13 @@
 import {
     type AuthStatus,
     DEFAULT_DOT_COM_MODELS,
-    ModelProvider,
     ModelUsage,
+    ModelProvider,
 } from '@sourcegraph/cody-shared'
 import * as vscode from 'vscode'
+
+export const CHAT_INPUT_TOKEN_BUDGET = 7000
+export const ANSWER_TOKENS = 1000
 
 /**
  * Sets the model providers based on the authentication status.
@@ -14,35 +17,44 @@ import * as vscode from 'vscode'
  * or fallback to the limit from the authentication status if not configured.
  */
 export function syncModelProviders(authStatus: AuthStatus): void {
-    if (!authStatus.endpoint) {
-        return
+    ModelProvider.setProviders(DEFAULT_DOT_COM_MODELS)
+}
+
+interface ChatModelProviderConfig {
+    provider: string
+    model: string
+    inputTokens?: number
+    outputTokens?: number
+    apiKey?: string
+    apiEndpoint?: string
+}
+
+/**
+ * NOTE: DotCom Connections only as model options are not available for Enterprise
+ *
+ * Gets an array of `ModelProvider` instances based on the configuration for dev chat models.
+ * If the `cody.dev.models` setting is not configured or is empty, the function returns an empty array.
+ *
+ * @returns An array of `ModelProvider` instances for the configured chat models.
+ */
+export function getChatModelsFromConfiguration(): ModelProvider[] {
+    const codyConfig = vscode.workspace.getConfiguration('cody')
+    const modelsConfig = codyConfig?.get<ChatModelProviderConfig[]>('dev.models')
+    if (!modelsConfig?.length) {
+        return []
     }
 
-    if (authStatus.isDotCom) {
-        ModelProvider.setProviders(DEFAULT_DOT_COM_MODELS)
-        return
+    const providers: ModelProvider[] = []
+    for (const m of modelsConfig) {
+        const provider = new ModelProvider(
+            `${m.provider}/${m.model}`,
+            [ModelUsage.Chat, ModelUsage.Edit],
+            // This is buggy, fix later
+            CHAT_INPUT_TOKEN_BUDGET)
+        provider.codyProOnly = true
+        providers.push(provider)
     }
 
-    // In enterprise mode, we let the sg instance dictate the token limits and allow users to
-    // overwrite it locally (for debugging purposes).
-    //
-    // This is similiar to the behavior we had before introducing the new chat and allows BYOK
-    // customers to set a model of their choice without us having to map it to a known model on
-    // the client.
-    //
-    // NOTE: If authStatus?.configOverwrites?.chatModel is empty, we will not set any model providers.
-    // Which means it will fallback to use the default model on the server.
-    if (authStatus?.configOverwrites?.chatModel) {
-        const codyConfig = vscode.workspace.getConfiguration('cody')
-        const tokenLimitConfig = codyConfig?.get<number>('provider.limit.prompt')
-        const tokenLimit = tokenLimitConfig ?? authStatus.configOverwrites?.chatModelMaxTokens
-        ModelProvider.setProviders([
-            new ModelProvider(
-                authStatus.configOverwrites.chatModel,
-                // TODO: Add configOverwrites.editModel for separate edit support
-                [ModelUsage.Chat, ModelUsage.Edit],
-                tokenLimit
-            ),
-        ])
-    }
+    ModelProvider.addProviders(providers)
+    return providers
 }

@@ -177,7 +177,7 @@ export class SimpleChatPanelProvider implements vscode.Disposable, ChatSession {
         this.editor = editor
         this.treeView = treeView
         // Fake and hardcoded model for testing
-        this.chatModel = new SimpleChatModel("anthropic/claude-3-sonnet-20240229")
+        this.chatModel = new SimpleChatModel(chatModel.get(authProvider, models))
         this.guardrails = guardrails
 
         if (TestSupport.instance) {

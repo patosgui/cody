@@ -20,9 +20,9 @@ function getModel<T extends string>(
 
     // Enterprise user can only use the default model
     // We only support a single model for enterprise users right now
-    if (!authStatus.isDotCom) {
-        return models[0].model as T
-    }
+    //if (!authStatus.isDotCom) {
+    //    return models[0].model as T
+    //}
 
     // Check for the last selected model
     const lastSelectedModelID = localStorage.get(storageKey)
